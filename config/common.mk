@@ -1,37 +1,5 @@
 # brand
-PRODUCT_BRAND ?= Carbon
-
-# SuperUser
-SUPERUSER_EMBEDDED := true
-
-ifneq ($(TARGET_SCREEN_WIDTH) $(TARGET_SCREEN_HEIGHT),$(space))
-# determine the smaller dimension
-TARGET_BOOTANIMATION_SIZE := $(shell \
-  if [ $(TARGET_SCREEN_WIDTH) -lt $(TARGET_SCREEN_HEIGHT) ]; then \
-    echo $(TARGET_SCREEN_WIDTH); \
-  else \
-    echo $(TARGET_SCREEN_HEIGHT); \
-  fi )
-
-# get a sorted list of the sizes
-bootanimation_sizes := $(subst .zip,, $(shell ls vendor/carbon/prebuilt/common/bootanimation))
-bootanimation_sizes := $(shell echo -e $(subst $(space),'\n',$(bootanimation_sizes)) | sort -rn)
-
-# find the appropriate size and set
-define check_and_set_bootanimation
-$(eval TARGET_BOOTANIMATION_NAME := $(shell \
-  if [ -z "$(TARGET_BOOTANIMATION_NAME)" ]; then
-    if [ $(1) -le $(TARGET_BOOTANIMATION_SIZE) ]; then \
-      echo $(1); \
-      exit 0; \
-    fi;
-  fi;
-  echo $(TARGET_BOOTANIMATION_NAME); ))
-endef
-$(foreach size,$(bootanimation_sizes), $(call check_and_set_bootanimation,$(size)))
-
-PRODUCT_BOOTANIMATION := vendor/carbon/prebuilt/common/bootanimation/$(TARGET_BOOTANIMATION_NAME).zip
-endif
+PRODUCT_BRAND ?= AOSP
 
 ifeq ($(PRODUCT_GMS_CLIENTID_BASE),)
 PRODUCT_PROPERTY_OVERRIDES += \
@@ -68,8 +36,8 @@ PRODUCT_PROPERTY_OVERRIDES += persist.sys.dun.override=0
 
 # Installer
 PRODUCT_COPY_FILES += \
-    vendor/carbon/prebuilt/common/bin/persist.sh:install/bin/persist.sh \
-    vendor/carbon/prebuilt/common/etc/persist.conf:system/etc/persist.conf
+    vendor/aosp/prebuilt/common/bin/persist.sh:install/bin/persist.sh \
+    vendor/aosp/prebuilt/common/etc/persist.conf:system/etc/persist.conf
 
 # main packages
 PRODUCT_PACKAGES += \
@@ -97,20 +65,6 @@ PRODUCT_PACKAGES += \
     VoicePlus \
     libemoji
 
-# carbon packages
-PRODUCT_PACKAGES += \
-    BlueBalls \
-    CarbonAbout \
-    CarbonDelta \
-    ROMStats \
-    Wallpapers
-
-ifneq ($(BOARD_USES_QCOM_MUSICFX),)
-    # dsp manager
-    PRODUCT_PACKAGES += \
-        DSPManager \
-        audio_effects.conf \
-        libcyanogen-dsp
 else
     #CAF MusicFX
     PRODUCT_PACKAGES += \
@@ -160,39 +114,25 @@ PRODUCT_PACKAGES += \
 $(call inherit-product, $(SRC_TARGET_DIR)/product/languages_full.mk)
 
 # themes
-include vendor/carbon/config/theme_chooser.mk
+include vendor/aosp/config/theme_chooser.mk
 
 # korean
 $(call inherit-product-if-exists, external/naver-fonts/fonts.mk)
 
 # overlay
-PRODUCT_PACKAGE_OVERLAYS += vendor/carbon/overlay/dictionaries
-PRODUCT_PACKAGE_OVERLAYS += vendor/carbon/overlay/common
+PRODUCT_PACKAGE_OVERLAYS += vendor/aosp/overlay/dictionaries
+PRODUCT_PACKAGE_OVERLAYS += vendor/aosp/overlay/common
 
 # bin
 PRODUCT_COPY_FILES += \
-    vendor/carbon/prebuilt/common/bin/sysinit:system/bin/sysinit
-
-# etc
-PRODUCT_COPY_FILES += \
-    vendor/carbon/prebuilt/common/etc/init.carbon.rc:root/init.carbon.rc
+    vendor/aosp/prebuilt/common/bin/sysinit:system/bin/sysinit
 
 # prebuilt
 PRODUCT_COPY_FILES += \
-    vendor/carbon/prebuilt/common/xbin/sysro:system/xbin/sysro \
-    vendor/carbon/prebuilt/common/xbin/sysrw:system/xbin/sysrw \
-    vendor/carbon/prebuilt/common/media/LMprec_508.emd:system/media/LMprec_508.emd \
-    vendor/carbon/prebuilt/common/media/PFFprec_600.emd:system/media/PFFprec_600.emd
-
-# Backup tool
-CARBON_BUILD = true
-PRODUCT_COPY_FILES += \
-    vendor/carbon/prebuilt/common/bin/backuptool.sh:system/bin/backuptool.sh \
-    vendor/carbon/prebuilt/common/bin/backuptool.functions:system/bin/backuptool.functions \
-    vendor/carbon/prebuilt/common/bin/50-carbon.sh:system/addon.d/50-carbon.sh \
-    vendor/carbon/prebuilt/common/bin/blacklist:system/addon.d/blacklist \
-    vendor/carbon/prebuilt/common/bin/99-backup.sh:system/addon.d/99-backup.sh \
-    vendor/carbon/prebuilt/common/etc/backup.conf:system/etc/backup.conf
+    vendor/aosp/prebuilt/common/xbin/sysro:system/xbin/sysro \
+    vendor/aosp/prebuilt/common/xbin/sysrw:system/xbin/sysrw \
+    vendor/aosp/prebuilt/common/media/LMprec_508.emd:system/media/LMprec_508.emd \
+    vendor/aosp/prebuilt/common/media/PFFprec_600.emd:system/media/PFFprec_600.emd
 
 # sip/voip
 PRODUCT_COPY_FILES += \
@@ -200,49 +140,10 @@ PRODUCT_COPY_FILES += \
 
 # nfc
 PRODUCT_COPY_FILES += \
-    vendor/carbon/config/permissions/com.carbon.android.xml:system/etc/permissions/com.carbon.android.xml \
-    vendor/carbon/config/permissions/com.carbon.nfc.enhanced.xml:system/etc/permissions/com.carbon.nfc.enhanced.xml
+    vendor/aosp/config/permissions/com.carbon.android.xml:system/etc/permissions/com.carbon.android.xml \
+    vendor/aosp/config/permissions/com.carbon.nfc.enhanced.xml:system/etc/permissions/com.carbon.nfc.enhanced.xml
 
-# version
-RELEASE = false
-CARBON_VERSION_MAJOR = 2
-CARBON_VERSION_MINOR = 0
-
-# Set CARBON_BUILDTYPE
-ifdef CARBON_NIGHTLY
-    CARBON_BUILDTYPE := NIGHTLY
-endif
-ifdef CARBON_EXPERIMENTAL
-    CARBON_BUILDTYPE := EXPERIMENTAL
-endif
-ifdef CARBON_RELEASE
-    CARBON_BUILDTYPE := RELEASE
-endif
-# Set Unofficial if no buildtype set (Buildtype should ONLY be set by Carbon Devs!)
-ifdef CARBON_BUILDTYPE
-else
-    CARBON_BUILDTYPE := UNOFFICIAL
-    CARBON_VERSION_MAJOR :=
-    CARBON_VERSION_MINOR :=
-endif
-
-# Set Carbon version
-ifdef CARBON_RELEASE
-    CARBON_VERSION := "CARBON-KK-v"$(CARBON_VERSION_MAJOR).$(CARBON_VERSION_MINOR)
-else
-    CARBON_VERSION := "CARBON-KK-$(CARBON_BUILDTYPE)"-$(shell date +%Y%m%d-%H%M)
-endif
-
-PRODUCT_PROPERTY_OVERRIDES += \
-  ro.carbon.version=$(CARBON_VERSION)
-
-# ROM Statistics and ROM Identification
-PRODUCT_PROPERTY_OVERRIDES += \
-ro.romstats.askfirst=1 \
-ro.romstats.ga=UA-43747246-1 \
-ro.romstats.name=CarbonRom- \
-ro.romstats.url=http://carbon-stats.mattman.org \
-ro.romstats.version=$(CARBON_VERSION)
+#
 
 # by default, do not update the recovery with system updates
 PRODUCT_PROPERTY_OVERRIDES += persist.sys.recovery_update=false
