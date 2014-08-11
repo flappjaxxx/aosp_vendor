@@ -1,1 +1,1 @@
-add_lunch_combo carbon_bacon-userdebug
+add_lunch_combo aosp_bacon-userdebug
